@@ -64,10 +64,6 @@ impl Sudoku {
           self.possibilities[i][j].remove(&self.sudoku[k][j]);
           self.possibilities[i][j].remove(&self.sudoku[(i / 3) * 3 + k / 3][(j / 3) * 3 + k % 3]);
         }
-      }
-    }
-    for i in 0..9{
-      for j in 0..9{
         self.check_intersections(i, j);
       }
     }
