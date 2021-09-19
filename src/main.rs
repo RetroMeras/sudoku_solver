@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::cmp::Eq;
 use std::hash::Hash;
+// use std::io::{stdin};
 
 struct Sudoku {
   sudoku: [[u8; 9]; 9],
@@ -158,8 +159,14 @@ impl std::fmt::Display for Sudoku {
 }
 
 fn main() {
+  // let mut sudoku = String::with_capacity(81);
+  // stdin().read_line(&mut sudoku).unwrap();
+  // println!("{}", sudoku);
+  // let mut sudoku = Sudoku::init(
+  //   &sudoku[..81],
+  // );
   let mut sudoku = Sudoku::init(
-    &"000850009086029000500000300000002008807000406053400900908243051000006073631780094".to_owned(),
+    &"002005000700040301406000029100000030000507206007320000038451072091006000074290168".to_owned()
   );
   sudoku.remove_placed();
   println!("{}", sudoku);
