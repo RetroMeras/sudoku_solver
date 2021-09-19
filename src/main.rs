@@ -27,6 +27,18 @@ fn intersect(to_intersect: &mut Vec<&HashSet<u8>>) -> HashSet<u8>{
   intersection
 }
 
+fn unit(to_unit: &mut Vec<&HashSet<u8>>) -> HashSet<u8>{
+  let mut unit: HashSet<u8> = vec![].iter().cloned().collect();
+  for a in to_unit{
+    unit = unit.union(&a).into_iter().cloned().collect();
+  }
+  unit
+}
+
+fn difference(a: &HashSet<u8>, b: &HashSet<u8>) -> HashSet<u8>{
+  a.difference(b).into_iter().cloned().collect()
+}
+
 impl Sudoku {
   fn init(sudoku_string: &str) -> Sudoku {
     let mut sudoku = [[0u8; 9]; 9];
@@ -65,7 +77,7 @@ impl Sudoku {
           self.possibilities[i][j].remove(&self.sudoku[k][j]);
           self.possibilities[i][j].remove(&self.sudoku[(i / 3) * 3 + k / 3][(j / 3) * 3 + k % 3]);
         }
-        self.check_intersections(i, j);
+        self.check_intersections_and_unions(i, j);
       }
     }
   }
@@ -95,36 +107,46 @@ impl Sudoku {
   }
 
   //checks if any other value cant be placed in this square
-  fn check_intersections(&mut self, x: usize, y: usize) {
-    let mut to_horizontal_intersect: Vec<&HashSet<u8>> = vec![];
-    let mut to_vertical_intersect: Vec<&HashSet<u8>> = vec![];
-    let mut to_box_intersect: Vec<&HashSet<u8>> = vec![];
+  fn check_intersections_and_unions(&mut self, x: usize, y: usize) {
+    let mut horizontal: Vec<&HashSet<u8>> = vec![];
+    let mut vertical: Vec<&HashSet<u8>> = vec![];
+    let mut boxes: Vec<&HashSet<u8>> = vec![];
     for k in 0..9 {
       if !self.possibilities[x][k].is_empty() && k != y {
-        to_horizontal_intersect.push(&self.possibilities[x][k])
+        horizontal.push(&self.possibilities[x][k])
       }
       if !self.possibilities[k][y].is_empty() && k != x{
-        to_vertical_intersect.push(&self.possibilities[k][y])
+        vertical.push(&self.possibilities[k][y])
       }
       if !self.possibilities[(x / 3) * 3 + k / 3][(y / 3) * 3 + k % 3].is_empty()
             && (x / 3) * 3 + k / 3 != x
             && (y / 3) * 3 + k % 3 != y{
-              to_box_intersect.push(&self.possibilities[(x / 3) * 3 + k / 3][(y / 3) * 3 + k % 3])
+              boxes.push(&self.possibilities[(x / 3) * 3 + k / 3][(y / 3) * 3 + k % 3])
       }
     }
 
-    let intersection_h = intersect(&mut to_horizontal_intersect);
-    let intersection_v = intersect(&mut to_vertical_intersect);
-    let intersection_b = intersect(&mut to_box_intersect);
+    let intersection_h = intersect(&mut horizontal);
+    let intersection_v = intersect(&mut vertical);
+    let intersection_b = intersect(&mut boxes);
+    let union_h = difference(&self.possibilities[x][y], &unit(&mut horizontal));
+    let union_v = difference(&self.possibilities[x][y], &unit(&mut vertical));
+    let union_b = difference(&self.possibilities[x][y], &unit(&mut boxes));
     // println!("{:?} {:?} {}", (x, y), intersection_h, to_horizontal_intersect.len());
     // println!("{:?} {:?} {}", (x, y), intersection_v, to_vertical_intersect.len());
     // println!("{:?} {:?} {}", (x, y), intersection_b, to_box_intersect.len());
-    if intersection_h.len() == to_horizontal_intersect.len() {
-      self.possibilities[x][y] = get_difference(&self.possibilities[x][y], &intersection_h, to_horizontal_intersect.len());
-    }else if intersection_v.len() == to_vertical_intersect.len(){
-      self.possibilities[x][y] = get_difference(&self.possibilities[x][y], &intersection_v, to_vertical_intersect.len());
-    }else if intersection_b.len() == to_box_intersect.len(){
-      self.possibilities[x][y] = get_difference(&self.possibilities[x][y], &intersection_b, to_box_intersect.len());
+    if intersection_h.len() == horizontal.len() {
+      self.possibilities[x][y] = get_difference(&self.possibilities[x][y], &intersection_h, horizontal.len());
+    }else if intersection_v.len() == vertical.len(){
+      self.possibilities[x][y] = get_difference(&self.possibilities[x][y], &intersection_v, vertical.len());
+    }else if intersection_b.len() == boxes.len(){
+      self.possibilities[x][y] = get_difference(&self.possibilities[x][y], &intersection_b, boxes.len());
+    }
+    if !union_h.is_empty(){
+      self.possibilities[x][y] = union_h.iter().cloned().collect();
+    }else if !union_v.is_empty(){
+      self.possibilities[x][y] = union_v.iter().cloned().collect();
+    }else if !union_b.is_empty(){
+      self.possibilities[x][y] = union_b.iter().cloned().collect();
     }
   }
 
@@ -166,7 +188,7 @@ fn main() {
   //   &sudoku[..81],
   // );
   let mut sudoku = Sudoku::init(
-    &"002005000700040301406000029100000030000507206007320000038451072091006000074290168".to_owned()
+    &"070530000801600207000000010000406000300000745080000006405000070003100029000000500".to_owned()
   );
   sudoku.remove_placed();
   println!("{}", sudoku);
