@@ -55,6 +55,7 @@ impl Sudoku {
       }
     }
   }
+  // making all manipulations with posibilities
   fn fill(&mut self) {
     for i in 0..9 {
       for j in 0..9 {
@@ -63,10 +64,15 @@ impl Sudoku {
           self.possibilities[i][j].remove(&self.sudoku[k][j]);
           self.possibilities[i][j].remove(&self.sudoku[(i / 3) * 3 + k / 3][(j / 3) * 3 + k % 3]);
         }
+      }
+    }
+    for i in 0..9{
+      for j in 0..9{
         self.check_intersections(i, j);
       }
     }
   }
+  // places values and returning true if does any chenges
   fn check(&mut self) -> bool {
     let mut ans = false;
     for i in 0..9 {
@@ -74,7 +80,6 @@ impl Sudoku {
         if self.possibilities[i][j].len() == 1 {
           self.sudoku[i][j] = self.possibilities[i][j].iter().cloned::<u8>().collect::<Vec<u8>>()[0];
           self.possibilities[i][j] = vec![].into_iter().collect();
-        } else if self.possibilities[i][j].len() > 1 {
           ans = true;
         }
       }
@@ -92,6 +97,7 @@ impl Sudoku {
     while self.fill_and_check() {}
   }
 
+  //checks if any other value cant be placed in this square
   fn check_intersections(&mut self, x: usize, y: usize) {
     let mut to_horizontal_intersect: Vec<&HashSet<u8>> = vec![];
     let mut to_vertical_intersect: Vec<&HashSet<u8>> = vec![];
@@ -113,9 +119,9 @@ impl Sudoku {
     let intersection_h = intersect(&mut to_horizontal_intersect);
     let intersection_v = intersect(&mut to_vertical_intersect);
     let intersection_b = intersect(&mut to_box_intersect);
-    // println!("{:?}, {:?}", intersection_h, to_horizontal_intersect);
-    // println!("{:?}, {:?}", intersection_v, to_vertical_intersect);
-    // println!("{:?}, {:?}", intersection_b, to_box_intersect);
+    // println!("{:?} {:?} {}", (x, y), intersection_h, to_horizontal_intersect.len());
+    // println!("{:?} {:?} {}", (x, y), intersection_v, to_vertical_intersect.len());
+    // println!("{:?} {:?} {}", (x, y), intersection_b, to_box_intersect.len());
     if intersection_h.len() == to_horizontal_intersect.len() {
       self.possibilities[x][y] = get_difference(&self.possibilities[x][y], &intersection_h, to_horizontal_intersect.len());
     }else if intersection_v.len() == to_vertical_intersect.len(){
@@ -124,6 +130,8 @@ impl Sudoku {
       self.possibilities[x][y] = get_difference(&self.possibilities[x][y], &intersection_b, to_box_intersect.len());
     }
   }
+
+
 }
 
 impl std::fmt::Display for Sudoku {
@@ -161,4 +169,6 @@ fn main() {
   println!("{}", sudoku);
   sudoku.solve();
   println!("{}", sudoku);
+  // sudoku.solve();
+  // println!("{}", sudoku);
 }
