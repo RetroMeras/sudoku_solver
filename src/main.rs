@@ -1,5 +1,5 @@
-use std::collections::HashSet;
 use std::cmp::Eq;
+use std::collections::HashSet;
 use std::hash::Hash;
 // use std::io::{stdin};
 
@@ -9,33 +9,43 @@ struct Sudoku {
 }
 
 fn get_difference<T: Eq + Hash + Copy>(
-    val: &HashSet<T>,
-    intersection: &HashSet<T>,
-    ln: usize) -> HashSet<T>{
-  if ln == intersection.len(){
+  val: &HashSet<T>,
+  intersection: &HashSet<T>,
+  ln: usize,
+) -> HashSet<T> {
+  if ln == intersection.len() {
     val.difference(intersection).into_iter().cloned().collect()
-  }else{
+  } else {
     val.iter().cloned().collect()
   }
 }
 
-fn intersect(to_intersect: &mut Vec<&HashSet<u8>>) -> HashSet<u8>{
+// fn print_indexes(){
+//   for i in 0..9{
+//     for j in 0..9{
+//       print!("({} {}) ", i, j);
+//     }
+//     println!();
+//   }
+// }
+
+fn intersect(to_intersect: &mut Vec<&HashSet<u8>>) -> HashSet<u8> {
   let mut intersection: HashSet<u8> = vec![1u8, 2, 3, 4, 5, 6, 7, 8, 9].iter().cloned().collect();
-  for a in to_intersect{
+  for a in to_intersect {
     intersection = intersection.intersection(&a).into_iter().cloned().collect();
   }
   intersection
 }
 
-fn unit(to_unit: &mut Vec<&HashSet<u8>>) -> HashSet<u8>{
+fn unit(to_unit: &mut Vec<&HashSet<u8>>) -> HashSet<u8> {
   let mut unit: HashSet<u8> = vec![].iter().cloned().collect();
-  for a in to_unit{
+  for a in to_unit {
     unit = unit.union(&a).into_iter().cloned().collect();
   }
   unit
 }
 
-fn difference(a: &HashSet<u8>, b: &HashSet<u8>) -> HashSet<u8>{
+fn difference(a: &HashSet<u8>, b: &HashSet<u8>) -> HashSet<u8> {
   a.difference(b).into_iter().cloned().collect()
 }
 
@@ -51,8 +61,8 @@ impl Sudoku {
       ];
       9
     ];
-    for i in sudoku_string.chars().enumerate() {
-      sudoku[i.0 / 9][i.0 % 9] = i.1.to_digit(10).unwrap() as u8
+    for (i, c) in sudoku_string.chars().enumerate() {
+      sudoku[i / 9][i % 9] = c.to_digit(10).unwrap() as u8
     }
     Sudoku {
       sudoku,
@@ -68,7 +78,7 @@ impl Sudoku {
       }
     }
   }
-  // making all manipulations with posibilities
+  // making all manipulations with possibilities
   fn fill(&mut self) {
     for i in 0..9 {
       for j in 0..9 {
@@ -87,7 +97,10 @@ impl Sudoku {
     for i in 0..9 {
       for j in 0..9 {
         if self.possibilities[i][j].len() == 1 {
-          self.sudoku[i][j] = self.possibilities[i][j].iter().cloned::<u8>().collect::<Vec<u8>>()[0];
+          self.sudoku[i][j] = self.possibilities[i][j]
+            .iter()
+            .cloned::<u8>()
+            .collect::<Vec<u8>>()[0];
           self.possibilities[i][j] = vec![].into_iter().collect();
           ans = true;
         }
@@ -115,13 +128,14 @@ impl Sudoku {
       if !self.possibilities[x][k].is_empty() && k != y {
         horizontal.push(&self.possibilities[x][k])
       }
-      if !self.possibilities[k][y].is_empty() && k != x{
+      if !self.possibilities[k][y].is_empty() && k != x {
         vertical.push(&self.possibilities[k][y])
       }
       if !self.possibilities[(x / 3) * 3 + k / 3][(y / 3) * 3 + k % 3].is_empty()
-            && (x / 3) * 3 + k / 3 != x
-            && (y / 3) * 3 + k % 3 != y{
-              boxes.push(&self.possibilities[(x / 3) * 3 + k / 3][(y / 3) * 3 + k % 3])
+        && (x / 3) * 3 + k / 3 != x
+        && (y / 3) * 3 + k % 3 != y
+      {
+        boxes.push(&self.possibilities[(x / 3) * 3 + k / 3][(y / 3) * 3 + k % 3])
       }
     }
 
@@ -135,22 +149,23 @@ impl Sudoku {
     // println!("{:?} {:?} {}", (x, y), intersection_v, to_vertical_intersect.len());
     // println!("{:?} {:?} {}", (x, y), intersection_b, to_box_intersect.len());
     if intersection_h.len() == horizontal.len() {
-      self.possibilities[x][y] = get_difference(&self.possibilities[x][y], &intersection_h, horizontal.len());
-    }else if intersection_v.len() == vertical.len(){
-      self.possibilities[x][y] = get_difference(&self.possibilities[x][y], &intersection_v, vertical.len());
-    }else if intersection_b.len() == boxes.len(){
-      self.possibilities[x][y] = get_difference(&self.possibilities[x][y], &intersection_b, boxes.len());
+      self.possibilities[x][y] =
+        get_difference(&self.possibilities[x][y], &intersection_h, horizontal.len());
+    } else if intersection_v.len() == vertical.len() {
+      self.possibilities[x][y] =
+        get_difference(&self.possibilities[x][y], &intersection_v, vertical.len());
+    } else if intersection_b.len() == boxes.len() {
+      self.possibilities[x][y] =
+        get_difference(&self.possibilities[x][y], &intersection_b, boxes.len());
     }
-    if !union_h.is_empty(){
+    if !union_h.is_empty() {
       self.possibilities[x][y] = union_h.iter().cloned().collect();
-    }else if !union_v.is_empty(){
+    } else if !union_v.is_empty() {
       self.possibilities[x][y] = union_v.iter().cloned().collect();
-    }else if !union_b.is_empty(){
+    } else if !union_b.is_empty() {
       self.possibilities[x][y] = union_b.iter().cloned().collect();
     }
   }
-
-
 }
 
 impl std::fmt::Display for Sudoku {
@@ -188,9 +203,10 @@ fn main() {
   //   &sudoku[..81],
   // );
   let mut sudoku = Sudoku::init(
-    &"070530000801600207000000010000406000300000745080000006405000070003100029000000500".to_owned()
+    &"070530000801600207000000010000406000300000745080000006405000070003100029000000500".to_owned(),
   );
   sudoku.remove_placed();
+  // print_indexes();
   println!("{}", sudoku);
   sudoku.solve();
   println!("{}", sudoku);
